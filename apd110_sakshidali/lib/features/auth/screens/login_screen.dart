@@ -1,4 +1,5 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
+import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
 import 'package:apd110_sakshidali/features/auth/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -52,16 +53,17 @@ class LoginPage extends StatelessWidget {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    
-                    onPressed: () {},
-                    style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                    child: const Text("Login",style: TextStyle(
-                      color: Colors.white
-                    ),),
-                  ),
+  onPressed: () {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const HomePage(),
+      ),
+    );
+  },
+  child: const Text("Login"),
+),
+
                 ),
 
                 const SizedBox(height: 16),

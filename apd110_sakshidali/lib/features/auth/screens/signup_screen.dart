@@ -64,10 +64,7 @@ class SignupPage extends StatelessWidget {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
+                  
                   child: const Text("Sign Up",style: TextStyle(
                     color: Colors.white
                   ),),
