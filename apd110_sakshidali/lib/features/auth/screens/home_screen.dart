@@ -1,6 +1,23 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
+import 'package:apd110_sakshidali/features/orders/screens/send_package.dart';
+import 'package:apd110_sakshidali/features/orders/screens/track_orderPage.dart';
 import 'package:flutter/material.dart';
 
+
+
+class MyOrdersPage extends StatelessWidget {
+  const MyOrdersPage({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text("My Orders Page")));
+}
+
+class PaymentsPage extends StatelessWidget {
+  const PaymentsPage({super.key});
+  @override
+  Widget build(BuildContext context) =>
+      const Scaffold(body: Center(child: Text("Payments Page")));
+}
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -84,10 +101,58 @@ class HomePage extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _serviceCard(Icons.local_shipping, "Send\nPackage"),
-                _serviceCard(Icons.track_changes, "Track\nOrder"),
-                _serviceCard(Icons.receipt_long, "My\nOrders"),
-                _serviceCard(Icons.payment, "Payments"),
+                _serviceCard(
+                  context,
+                  Icons.local_shipping,
+                  "Send\nPackage",
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SendPackagePage(),
+                      ),
+                    );
+                  },
+                ),
+                _serviceCard(
+                  context,
+                  Icons.track_changes,
+                  "Track\nOrder",
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) =>  TrackOrderPage(),
+                      ),
+                    );
+                  },
+                ),
+                _serviceCard(
+                  context,
+                  Icons.receipt_long,
+                  "My\nOrders",
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MyOrdersPage(),
+                      ),
+                    );
+                  },
+                ),
+                _serviceCard(
+                  context,
+                  Icons.payment,
+                  "Payments",
+                  () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const PaymentsPage(),
+                      ),
+                    );
+                  },
+                ),
               ],
             ),
 
@@ -173,24 +238,34 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _serviceCard(IconData icon, String title) {
-    return Column(
-      children: [
-        CircleAvatar(
-          radius: 28,
-          backgroundColor: AppColors.primaryTeal.withOpacity(0.15),
-          child: Icon(icon, color: AppColors.primaryTeal),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontSize: 12,
-            color: AppColors.textDark,
+  // ✅ UPDATED CLICKABLE SERVICE CARD
+  Widget _serviceCard(
+    BuildContext context,
+    IconData icon,
+    String title,
+    VoidCallback onTap,
+  ) {
+    return InkWell(
+      borderRadius: BorderRadius.circular(50),
+      onTap: onTap,
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius: 28,
+            backgroundColor: AppColors.primaryTeal.withOpacity(0.15),
+            child: Icon(icon, color: AppColors.primaryTeal),
           ),
-        ),
-      ],
+          const SizedBox(height: 6),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.textDark,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

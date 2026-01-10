@@ -18,4 +18,6 @@ class AppColors {
   static const Color alertDark = Color(0xFFEB1414);
 
   static Color? get textPrimary => null;
+
+  static Color? get info => null;
 }
