@@ -1,23 +1,15 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
+import 'package:apd110_sakshidali/features/orders/screens/my_orderPage.dart';
+import 'package:apd110_sakshidali/features/orders/screens/payment_page.dart';
 import 'package:apd110_sakshidali/features/orders/screens/send_package.dart';
 import 'package:apd110_sakshidali/features/orders/screens/track_orderPage.dart';
 import 'package:flutter/material.dart';
 
 
 
-class MyOrdersPage extends StatelessWidget {
-  const MyOrdersPage({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text("My Orders Page")));
-}
 
-class PaymentsPage extends StatelessWidget {
-  const PaymentsPage({super.key});
-  @override
-  Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: Text("Payments Page")));
-}
+
+
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
