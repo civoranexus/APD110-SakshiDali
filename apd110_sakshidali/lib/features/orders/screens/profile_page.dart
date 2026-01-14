@@ -1,6 +1,8 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
 import 'package:apd110_sakshidali/features/orders/screens/my_orderPage.dart';
+import 'package:apd110_sakshidali/features/orders/screens/savedAddress_page.dart';
+import 'package:apd110_sakshidali/features/orders/screens/settings.dart';
 import 'package:flutter/material.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -73,7 +75,11 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.location_on_outlined,
               title: "Saved Addresses",
               onTap: () {
-                // Navigate to Saved Address Page
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>  SavedAddressPage(),
+                  ),
+                );
               },
             ),
 
@@ -84,7 +90,7 @@ class ProfilePage extends StatelessWidget {
               onTap: () {
                 Navigator.of(context).push(
                   MaterialPageRoute(
-                    builder: (_) => const HomePage(),
+                    builder: (_) => const MyOrdersPage(),
                   ),
                 );
               },
@@ -108,7 +114,11 @@ class ProfilePage extends StatelessWidget {
               context,
               icon: Icons.settings_outlined,
               title: "Settings",
-              onTap: () {},
+             onTap: () {
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) =>  SettingsPage()),
+  );
+},
             ),
 
             const SizedBox(height: 16),
@@ -162,11 +172,10 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap: () {
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) =>  HomePage()),
-  );
-},
+          onTap:onTap
+  // Navigator.of(context).push(
+  //   MaterialPageRoute(builder: (_) =>  HomePage()),
+  // );
         ),
       ),
     );
