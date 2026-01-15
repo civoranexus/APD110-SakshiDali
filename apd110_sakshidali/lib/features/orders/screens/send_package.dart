@@ -1,4 +1,6 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
+import 'package:apd110_sakshidali/features/orders/screens/payment_method.dart';
+import 'package:apd110_sakshidali/features/orders/screens/settings.dart';
 import 'package:flutter/material.dart';
 
 
@@ -52,7 +54,11 @@ class SendPackagePage extends StatelessWidget {
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: () {},
+                 onPressed: () {
+  Navigator.of(context).push(
+    MaterialPageRoute(builder: (_) =>  PaymentPage()),
+  );
+},
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryTeal,
                   shape: RoundedRectangleBorder(
