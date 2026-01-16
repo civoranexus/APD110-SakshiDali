@@ -1,6 +1,6 @@
-import 'package:apd110_sakshidali/core/constants/theme/app_theme.dart';
-import 'package:apd110_sakshidali/features/auth/screens/welcom_Screen.dart';
+import 'package:apd110_sakshidali/spashScreen.dart';
 import 'package:flutter/material.dart';
+import 'package:apd110_sakshidali/core/constants/theme/app_theme.dart';
 
 void main() {
   runApp(const MarketReachApp());
@@ -15,7 +15,7 @@ class MarketReachApp extends StatelessWidget {
       title: 'MarketReach',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const WelcomeScreen(),
+      home:  SplashScreen(), // 👈 START FROM SPLASH
     );
   }
 }

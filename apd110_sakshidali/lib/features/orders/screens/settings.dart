@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
+import 'package:apd110_sakshidali/features/orders/screens/personal_Info.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -20,7 +21,7 @@ class SettingsPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
-          // Profile Card
+          // 🔹 Profile Card
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -38,7 +39,8 @@ class SettingsPage extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: AppColors.primaryTeal,
-                  child: const Icon(Icons.person, color: Colors.white, size: 30),
+                  child: const Icon(Icons.person,
+                      color: Colors.white, size: 30),
                 ),
                 const SizedBox(width: 16),
                 const Column(
@@ -67,12 +69,22 @@ class SettingsPage extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Settings Options
+          // 🔹 Settings Options
           _settingsTile(
             icon: Icons.person_outline,
             title: 'Account',
             subtitle: 'Personal information',
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      const PersonalInformationPage(),
+                ),
+              );
+            },
           ),
+
           _settingsTile(
             icon: Icons.notifications_none,
             title: 'Notifications',
@@ -83,6 +95,7 @@ class SettingsPage extends StatelessWidget {
               activeColor: AppColors.primaryTeal,
             ),
           ),
+
           _settingsTile(
             icon: Icons.dark_mode_outlined,
             title: 'Dark Mode',
@@ -93,11 +106,13 @@ class SettingsPage extends StatelessWidget {
               activeColor: AppColors.primaryTeal,
             ),
           ),
+
           _settingsTile(
             icon: Icons.lock_outline,
             title: 'Privacy & Security',
             subtitle: 'Password, permissions',
           ),
+
           _settingsTile(
             icon: Icons.help_outline,
             title: 'Help & Support',
@@ -106,7 +121,7 @@ class SettingsPage extends StatelessWidget {
 
           const SizedBox(height: 16),
 
-          // Logout
+          // 🔹 Logout
           ListTile(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -127,28 +142,23 @@ class SettingsPage extends StatelessWidget {
     );
   }
 
+  // 🔹 Reusable Settings Tile
   Widget _settingsTile({
     required IconData icon,
     required String title,
     required String subtitle,
     Widget? trailing,
+    VoidCallback? onTap,
   }) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.background,
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppColors.primaryTeal),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.w600),
-        ),
-        subtitle: Text(subtitle),
-        trailing: trailing ?? const Icon(Icons.arrow_forward_ios, size: 16),
-        onTap: () {},
-      ),
+    return ListTile(
+      contentPadding:
+          const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      leading: Icon(icon, color: AppColors.primaryTeal),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      trailing: trailing ??
+          const Icon(Icons.arrow_forward_ios, size: 16),
+      onTap: onTap,
     );
   }
 }
