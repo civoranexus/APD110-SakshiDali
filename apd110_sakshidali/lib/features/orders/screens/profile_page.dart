@@ -1,6 +1,9 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
+import 'package:apd110_sakshidali/features/auth/screens/helpAndSupport_page.dart';
 import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
 import 'package:apd110_sakshidali/features/orders/screens/my_orderPage.dart';
+import 'package:apd110_sakshidali/features/orders/screens/payment_method.dart';
+import 'package:apd110_sakshidali/features/orders/screens/payment_page.dart';
 import 'package:apd110_sakshidali/features/orders/screens/savedAddress_page.dart';
 import 'package:apd110_sakshidali/features/orders/screens/settings.dart';
 import 'package:flutter/material.dart';
@@ -100,14 +103,26 @@ class ProfilePage extends StatelessWidget {
               context,
               icon: Icons.account_balance_wallet_outlined,
               title: "Payment History",
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>  PaymentsPage(),
+                  ),
+                );
+              },
             ),
 
             _profileTile(
               context,
               icon: Icons.support_agent_outlined,
               title: "Help & Support",
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) =>  HelpSupportPage(),
+                  ),
+                );
+              },
             ),
 
             _profileTile(
