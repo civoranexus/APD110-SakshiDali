@@ -128,6 +128,35 @@
 
 <p align="center">
   Made with ❤️ by CivoraX Team
+  ---
+
+# 📦 Project: MarketReach – Last-Mile Delivery Platform
+
+## Project ID
+APD110
+
+## Intern Details
+- **Name:** Sakshi Dali
+- **Internship Program:** CivoraX Internship 2025–26
+- **Company:** Civora Nexus Pvt. Ltd.
+
+## Project Overview
+MarketReach is a last-mile delivery platform designed to streamline order placement, agent assignment, real-time tracking, and logistics management through a secure and scalable system.
+
+## Key Modules
+- User & Profile Management (Customer, Agent, Admin)
+- Order Management & Scheduling
+- Delivery Agent Tracking & Route Optimization
+- Notifications & Communication
+- Payment & Transaction Handling
+- Admin & Logistics Dashboard
+
+## Project Status
+🟢 Project setup completed  
+🟡 Development in progress
+
+## Repository Structure
+
 </p>
 
 
