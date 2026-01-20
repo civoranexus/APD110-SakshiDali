@@ -1,6 +1,6 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
-import 'package:apd110_sakshidali/features/auth/screens/login_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+
+import 'package:apd110_sakshidali/features/auth/controllers/auth_controller.dart';
 import 'package:flutter/material.dart';
 
 class SignupPage extends StatefulWidget {
@@ -18,6 +18,8 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController confirmPasswordController =
       TextEditingController();
 
+  final AuthController _authController = AuthController();
+
   bool isLoading = false;
 
   Future<void> registerUser() async {
@@ -25,34 +27,21 @@ class _SignupPageState extends State<SignupPage> {
 
     setState(() => isLoading = true);
 
-    try {
-      await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+    await _authController.signup(
+      email: emailController.text,
+      password: passwordController.text,
+      context: context,
+    );
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Account created successfully")),
-      );
+    setState(() => isLoading = false);
+  }
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-      );
-    } on FirebaseAuthException catch (e) {
-      String message = "Signup failed";
-
-      if (e.code == 'email-already-in-use') {
-        message = "Email already registered";
-      } else if (e.code == 'weak-password') {
-        message = "Password too weak";
-      }
-
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(message)));
-    } finally {
-      setState(() => isLoading = false);
-    }
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    confirmPasswordController.dispose();
+    super.dispose();
   }
 
   @override

@@ -1,8 +1,7 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
-import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
-import 'package:apd110_sakshidali/features/auth/screens/signup_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
+import 'package:apd110_sakshidali/features/auth/controllers/auth_controller.dart';
+import 'package:apd110_sakshidali/features/auth/screens/signup_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoginPage extends StatefulWidget {
@@ -16,6 +15,8 @@ class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final AuthController _authController = AuthController();
+
   bool isLoading = false;
 
   Future<void> loginUser() async {
@@ -23,31 +24,20 @@ class _LoginPageState extends State<LoginPage> {
 
     setState(() => isLoading = true);
 
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: emailController.text.trim(),
-        password: passwordController.text.trim(),
-      );
+    await _authController.login(
+      email: emailController.text,
+      password: passwordController.text,
+      context: context,
+    );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomePage()),
-      );
-    } on FirebaseAuthException catch (e) {
-      String message = "Login failed";
+    setState(() => isLoading = false);
+  }
 
-      if (e.code == 'user-not-found') {
-        message = "No user found";
-      } else if (e.code == 'wrong-password') {
-        message = "Wrong password";
-      }
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message)),
-      );
-    } finally {
-      setState(() => isLoading = false);
-    }
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
   }
 
   @override
@@ -132,7 +122,7 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           );
                         },
-                        child:  Text(
+                        child: Text(
                           "Sign up",
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
