@@ -1,6 +1,7 @@
 import 'dart:async';
-import 'package:flutter/material.dart';
 import 'package:apd110_sakshidali/features/auth/screens/welcom_Screen.dart';
+import 'package:flutter/material.dart';
+
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -15,13 +16,18 @@ class _SplashScreenState extends State<SplashScreen> {
   void initState() {
     super.initState();
 
-    Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const WelcomeScreen(),
-        ),
-      );
+    // Run navigation AFTER widget is built
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Timer(const Duration(seconds: 3), () {
+        if (!mounted) return;
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => const WelcomeScreen(),
+          ),
+        );
+      });
     });
   }
 
