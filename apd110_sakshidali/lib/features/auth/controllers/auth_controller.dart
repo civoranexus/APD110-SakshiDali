@@ -1,11 +1,52 @@
+import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// Current logged-in user
-  User? get currentUser => _auth.currentUser;
+  /// ================= SIGNUP =================
+  Future<void> signup({
+    required String email,
+    required String password,
+    required BuildContext context,
+  }) async {
+    try {
+      // 1️⃣ Create auth account
+      UserCredential userCredential =
+          await _auth.createUserWithEmailAndPassword(
+        email: email.trim(),
+        password: password.trim(),
+      );
+
+      User? user = userCredential.user;
+
+      if (user != null) {
+        // 2️⃣ Save user data to Firestore
+        await _firestore.collection('users').doc(user.uid).set({
+          'uid': user.uid,
+          'email': user.email,
+          'createdAt': FieldValue.serverTimestamp(),
+          'isEmailVerified': user.emailVerified,
+        });
+
+        // 3️⃣ Send verification email
+        await user.sendEmailVerification();
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Signup successful & data saved"),
+        ),
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? "Signup failed")),
+      );
+    }
+  }
 
   /// ================= LOGIN =================
   Future<void> login({
@@ -19,68 +60,20 @@ class AuthController {
         password: password.trim(),
       );
 
-      _showMessage(context, "Login successful");
-    } on FirebaseAuthException catch (e) {
-      _showMessage(context, e.message ?? "Login failed");
-    } catch (e) {
-      _showMessage(context, "Something went wrong");
-    }
-  }
-
-  /// ================= SIGNUP =================
-  Future<void> signup({
-    required String email,
-    required String password,
-    required BuildContext context,
-  }) async {
-    try {
-      UserCredential userCredential =
-          await _auth.createUserWithEmailAndPassword(
-        email: email.trim(),
-        password: password.trim(),
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Login successful")),
+        
       );
-
-      /// Send email verification
-      await userCredential.user?.sendEmailVerification();
-
-      _showMessage(
+       Navigator.pushReplacement(
         context,
-        "Account created. Verification email sent.",
+        MaterialPageRoute(
+          builder: (_) => const HomePage(),
+        ),
       );
     } on FirebaseAuthException catch (e) {
-      _showMessage(context, e.message ?? "Signup failed");
-    } catch (e) {
-      _showMessage(context, "Something went wrong");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message ?? "Login failed")),
+      );
     }
-  }
-
-  /// ================= LOGOUT =================
-  Future<void> logout() async {
-    await _auth.signOut();
-  }
-
-  /// ================= FORGOT PASSWORD =================
-  Future<void> resetPassword({
-    required String email,
-    required BuildContext context,
-  }) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email.trim());
-      _showMessage(context, "Password reset email sent");
-    } on FirebaseAuthException catch (e) {
-      _showMessage(context, e.message ?? "Failed to send email");
-    }
-  }
-
-  /// ================= AUTH STATE =================
-  Stream<User?> authStateChanges() {
-    return _auth.authStateChanges();
-  }
-
-  /// ================= HELPER =================
-  void _showMessage(BuildContext context, String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
   }
 }

@@ -52,6 +52,12 @@ class WelcomeScreen extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.primaryTeal,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                   onPressed: () {
                     Navigator.push(
                       context,
@@ -62,7 +68,7 @@ class WelcomeScreen extends StatelessWidget {
                   },
                   child: const Text(
                     'Get Started',
-                    style: TextStyle(fontSize: 16),
+                    style: TextStyle(fontSize: 16, color:Colors.white),
                   ),
                 ),
               ),
