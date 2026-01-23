@@ -1,9 +1,73 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 import 'package:apd110_sakshidali/features/orders/screens/payment_method.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-class SendPackagePage extends StatelessWidget {
+class SendPackagePage extends StatefulWidget {
   const SendPackagePage({super.key});
+
+  @override
+  State<SendPackagePage> createState() => _SendPackagePageState();
+}
+
+class _SendPackagePageState extends State<SendPackagePage> {
+  final _senderName = TextEditingController();
+  final _senderPhone = TextEditingController();
+  final _receiverName = TextEditingController();
+  final _receiverPhone = TextEditingController();
+  final _packageWeight = TextEditingController();
+  final _packageType = TextEditingController();
+  final _pickupLocation = TextEditingController();
+  final _dropLocation = TextEditingController();
+
+  bool isLoading = false;
+
+  /// 🚀 Save package to Firestore
+  Future<void> _createPackage() async {
+    setState(() => isLoading = true);
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    final docRef =
+        FirebaseFirestore.instance.collection('send_packages').doc();
+
+    await docRef.set({
+      "packageId": docRef.id,
+
+      "senderId": user!.uid,
+      "senderName": _senderName.text.trim(),
+      "senderPhone": _senderPhone.text.trim(),
+
+      "receiverName": _receiverName.text.trim(),
+      "receiverPhone": _receiverPhone.text.trim(),
+
+      "packageDetails": {
+        "weight": _packageWeight.text.trim(),
+        "type": _packageType.text.trim(),
+      },
+
+      "pickupAddress": {
+        "location": _pickupLocation.text.trim(),
+      },
+
+      "dropAddress": {
+        "location": _dropLocation.text.trim(),
+      },
+
+      "status": "pending",
+      "createdAt": FieldValue.serverTimestamp(),
+    });
+
+    setState(() => isLoading = false);
+
+    /// ➡️ Go to payment
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => PaymentPage(packageId: '2',),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,30 +85,30 @@ class SendPackagePage extends StatelessWidget {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-
             _infoCard(
               title: "Sender Details",
               children: [
-                _inputField("Sender Name", Icons.person),
-                _inputField("Sender Phone", Icons.phone),
+                _inputField("Sender Name", Icons.person, _senderName),
+                _inputField("Sender Phone", Icons.phone, _senderPhone),
               ],
             ),
 
             _infoCard(
               title: "Receiver Details",
               children: [
-                _inputField("Receiver Name", Icons.person_outline),
-                _inputField("Receiver Phone", Icons.phone_android),
+                _inputField("Receiver Name", Icons.person_outline, _receiverName),
+                _inputField("Receiver Phone", Icons.phone_android, _receiverPhone),
               ],
             ),
 
             _infoCard(
               title: "Package Details",
               children: [
-                _inputField("Package Weight (kg)", Icons.scale),
+                _inputField("Package Weight (kg)", Icons.scale, _packageWeight),
                 _inputField(
                   "Package Type (Document / Box / Fragile)",
                   Icons.inventory_2,
+                  _packageType,
                 ),
               ],
             ),
@@ -52,14 +116,14 @@ class SendPackagePage extends StatelessWidget {
             _infoCard(
               title: "Pickup Address",
               children: [
-                _inputField("Pickup Location", Icons.location_on),
+                _inputField("Pickup Location", Icons.location_on, _pickupLocation),
               ],
             ),
 
             _infoCard(
               title: "Drop Address",
               children: [
-                _inputField("Drop Location", Icons.flag),
+                _inputField("Drop Location", Icons.flag, _dropLocation),
               ],
             ),
 
@@ -69,13 +133,7 @@ class SendPackagePage extends StatelessWidget {
               width: double.infinity,
               height: 54,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) => const PaymentPage(),
-                    ),
-                  );
-                },
+                onPressed: isLoading ? null : _createPackage,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryTeal,
                   elevation: 4,
@@ -83,14 +141,16 @@ class SendPackagePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text(
-                  "Proceed to Payment",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
+                child: isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        "Proceed to Payment",
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
@@ -106,7 +166,6 @@ class SendPackagePage extends StatelessWidget {
   }) {
     return Card(
       margin: const EdgeInsets.only(bottom: 18),
-      color: Colors.white,
       elevation: 4,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(18),
@@ -133,10 +192,15 @@ class SendPackagePage extends StatelessWidget {
   }
 
   /// ✏️ Input Field
-  Widget _inputField(String hint, IconData icon) {
+  Widget _inputField(
+    String hint,
+    IconData icon,
+    TextEditingController controller,
+  ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
       child: TextField(
+        controller: controller,
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(icon, color: AppColors.primaryTeal),

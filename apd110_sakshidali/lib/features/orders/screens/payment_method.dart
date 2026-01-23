@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 
 class PaymentPage extends StatefulWidget {
-  const PaymentPage({super.key});
+  final String packageId;
+
+  const PaymentPage({
+    super.key,
+    required this.packageId,
+  });
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -10,6 +16,37 @@ class PaymentPage extends StatefulWidget {
 
 class _PaymentPageState extends State<PaymentPage> {
   String selectedPayment = 'UPI';
+  bool isLoading = false;
+
+  /// 🔥 Update payment info in Firestore
+  Future<void> _confirmPayment() async {
+    setState(() => isLoading = true);
+
+    try {
+      await FirebaseFirestore.instance
+          .collection('send_packages')
+          .doc(widget.packageId)
+          .update({
+        "paymentStatus": "paid",
+        "paymentMethod": selectedPayment,
+        "status": "paid",
+        "paidAt": FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Payment successful")),
+      );
+
+      /// Go back to Home
+      Navigator.popUntil(context, (route) => route.isFirst);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Payment failed")),
+      );
+    }
+
+    setState(() => isLoading = false);
+  }
 
   Widget paymentOption({
     required String title,
@@ -45,7 +82,6 @@ class _PaymentPageState extends State<PaymentPage> {
         ),
         child: Row(
           children: [
-            // Bullet Icon
             Container(
               height: 18,
               width: 18,
@@ -60,13 +96,9 @@ class _PaymentPageState extends State<PaymentPage> {
                 ),
               ),
             ),
-
             const SizedBox(width: 16),
-
             Icon(icon, color: AppColors.primaryTeal, size: 28),
-
             const SizedBox(width: 16),
-
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,7 +152,6 @@ class _PaymentPageState extends State<PaymentPage> {
 
             const SizedBox(height: 20),
 
-            // Payment Options (Bullet Style)
             paymentOption(
               title: 'UPI',
               subtitle: 'Google Pay, PhonePe, Paytm',
@@ -151,7 +182,6 @@ class _PaymentPageState extends State<PaymentPage> {
 
             const Spacer(),
 
-            // Pay Button
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -162,17 +192,17 @@ class _PaymentPageState extends State<PaymentPage> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                onPressed: () {
-                  // Handle payment action
-                },
-                child: const Text(
-                  'Proceed to Pay',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.white,
-                  ),
-                ),
+                onPressed: isLoading ? null : _confirmPayment,
+                child: isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text(
+                        'Proceed to Pay',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
               ),
             ),
           ],
