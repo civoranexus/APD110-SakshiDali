@@ -13,7 +13,8 @@ class TrackOrderPage extends StatelessWidget {
         backgroundColor: AppColors.navyCore,
         title: const Text(
           "Track Order",
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: TextStyle(fontWeight: FontWeight.bold,
+          color:Colors.white,),
         ),
       ),
 
@@ -64,6 +65,7 @@ class TrackOrderPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color:Colors.white,
                   ),
                 ),
               ),

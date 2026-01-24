@@ -14,7 +14,6 @@ class AuthController {
     required BuildContext context,
   }) async {
     try {
-      // 1️⃣ Create auth account
       UserCredential userCredential =
           await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
@@ -24,7 +23,6 @@ class AuthController {
       User? user = userCredential.user;
 
       if (user != null) {
-        // 2️⃣ Save user data to Firestore
         await _firestore.collection('users').doc(user.uid).set({
           'uid': user.uid,
           'email': user.email,
@@ -32,14 +30,11 @@ class AuthController {
           'isEmailVerified': user.emailVerified,
         });
 
-        // 3️⃣ Send verification email
         await user.sendEmailVerification();
       }
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text("Signup successful & data saved"),
-        ),
+        const SnackBar(content: Text("Signup successful. Verify your email.")),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,20 +55,25 @@ class AuthController {
         password: password.trim(),
       );
 
+      // ✅ REMOVE LOGIN FROM STACK
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomePage()),
+        (route) => false,
+      );
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login successful")),
-        
-      );
-       Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const HomePage(),
-        ),
       );
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Login failed")),
       );
     }
+  }
+
+  /// ================= LOGOUT =================
+  Future<void> logout(BuildContext context) async {
+    await _auth.signOut();
   }
 }

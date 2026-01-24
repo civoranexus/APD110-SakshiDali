@@ -12,6 +12,8 @@ class SendPackagePage extends StatefulWidget {
 }
 
 class _SendPackagePageState extends State<SendPackagePage> {
+  final _formKey = GlobalKey<FormState>();
+
   final _senderName = TextEditingController();
   final _senderPhone = TextEditingController();
   final _receiverName = TextEditingController();
@@ -28,7 +30,6 @@ class _SendPackagePageState extends State<SendPackagePage> {
     setState(() => isLoading = true);
 
     final user = FirebaseAuth.instance.currentUser;
-
     final docRef =
         FirebaseFirestore.instance.collection('send_packages').doc();
 
@@ -61,10 +62,10 @@ class _SendPackagePageState extends State<SendPackagePage> {
 
     setState(() => isLoading = false);
 
-    /// ➡️ Go to payment
+    /// ➡️ Navigate to payment page
     Navigator.of(context).push(
       MaterialPageRoute(
-        builder: (_) => PaymentPage(packageId: '2',),
+        builder: (_) => PaymentPage(packageId: docRef.id),
       ),
     );
   }
@@ -81,79 +82,89 @@ class _SendPackagePageState extends State<SendPackagePage> {
         foregroundColor: Colors.white,
       ),
 
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            _infoCard(
-              title: "Sender Details",
-              children: [
-                _inputField("Sender Name", Icons.person, _senderName),
-                _inputField("Sender Phone", Icons.phone, _senderPhone),
-              ],
-            ),
+      body: Form(
+        key: _formKey,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
 
-            _infoCard(
-              title: "Receiver Details",
-              children: [
-                _inputField("Receiver Name", Icons.person_outline, _receiverName),
-                _inputField("Receiver Phone", Icons.phone_android, _receiverPhone),
-              ],
-            ),
-
-            _infoCard(
-              title: "Package Details",
-              children: [
-                _inputField("Package Weight (kg)", Icons.scale, _packageWeight),
-                _inputField(
-                  "Package Type (Document / Box / Fragile)",
-                  Icons.inventory_2,
-                  _packageType,
-                ),
-              ],
-            ),
-
-            _infoCard(
-              title: "Pickup Address",
-              children: [
-                _inputField("Pickup Location", Icons.location_on, _pickupLocation),
-              ],
-            ),
-
-            _infoCard(
-              title: "Drop Address",
-              children: [
-                _inputField("Drop Location", Icons.flag, _dropLocation),
-              ],
-            ),
-
-            const SizedBox(height: 30),
-
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                onPressed: isLoading ? null : _createPackage,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        "Proceed to Payment",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                      ),
+              _infoCard(
+                title: "Sender Details",
+                children: [
+                  _inputField("Sender Name", Icons.person, _senderName),
+                  _inputField("Sender Phone", Icons.phone, _senderPhone),
+                ],
               ),
-            ),
-          ],
+
+              _infoCard(
+                title: "Receiver Details",
+                children: [
+                  _inputField("Receiver Name", Icons.person_outline, _receiverName),
+                  _inputField("Receiver Phone", Icons.phone_android, _receiverPhone),
+                ],
+              ),
+
+              _infoCard(
+                title: "Package Details",
+                children: [
+                  _inputField("Package Weight (kg)", Icons.scale, _packageWeight),
+                  _inputField(
+                    "Package Type (Document / Box / Fragile)",
+                    Icons.inventory_2,
+                    _packageType,
+                  ),
+                ],
+              ),
+
+              _infoCard(
+                title: "Pickup Address",
+                children: [
+                  _inputField("Pickup Location", Icons.location_on, _pickupLocation),
+                ],
+              ),
+
+              _infoCard(
+                title: "Drop Address",
+                children: [
+                  _inputField("Drop Location", Icons.flag, _dropLocation),
+                ],
+              ),
+
+              const SizedBox(height: 30),
+
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: isLoading
+                      ? null
+                      : () {
+                          if (_formKey.currentState!.validate()) {
+                            _createPackage();
+                          }
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primaryTeal,
+                    elevation: 4,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text(
+                          "Proceed to Payment",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -191,7 +202,7 @@ class _SendPackagePageState extends State<SendPackagePage> {
     );
   }
 
-  /// ✏️ Input Field
+  /// ✏️ Input Field with Validation
   Widget _inputField(
     String hint,
     IconData icon,
@@ -199,8 +210,14 @@ class _SendPackagePageState extends State<SendPackagePage> {
   ) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 14),
-      child: TextField(
+      child: TextFormField(
         controller: controller,
+        validator: (value) {
+          if (value == null || value.trim().isEmpty) {
+            return '$hint is required';
+          }
+          return null;
+        },
         decoration: InputDecoration(
           hintText: hint,
           prefixIcon: Icon(icon, color: AppColors.primaryTeal),
