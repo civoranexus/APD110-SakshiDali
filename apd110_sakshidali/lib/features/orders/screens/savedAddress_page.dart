@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SavedAddressPage extends StatefulWidget {
   const SavedAddressPage({super.key});
@@ -9,8 +11,40 @@ class SavedAddressPage extends StatefulWidget {
 }
 
 class _SavedAddressPageState extends State<SavedAddressPage> {
-  final List<Map<String, String>> _addresses = [];
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final User? _user = FirebaseAuth.instance.currentUser;
 
+  /// 🔥 Save address to Firestore
+  Future<void> _saveAddress({
+    required String tag,
+    required String name,
+    required String address,
+    required String phone,
+  }) async {
+    await _firestore
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('addresses')
+        .add({
+      'tag': tag,
+      'name': name,
+      'address': address,
+      'phone': phone,
+      'createdAt': Timestamp.now(),
+    });
+  }
+
+  /// ❌ Delete address from Firestore
+  Future<void> _deleteAddress(String docId) async {
+    await _firestore
+        .collection('users')
+        .doc(_user!.uid)
+        .collection('addresses')
+        .doc(docId)
+        .delete();
+  }
+
+  /// ➕ Bottom Sheet (Add Address)
   void _showAddAddressPopup() {
     final tagController = TextEditingController();
     final nameController = TextEditingController();
@@ -60,7 +94,7 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
                       borderRadius: BorderRadius.circular(14),
                     ),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (tagController.text.isEmpty ||
                         nameController.text.isEmpty ||
                         addressController.text.isEmpty ||
@@ -68,14 +102,12 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
                       return;
                     }
 
-                    setState(() {
-                      _addresses.add({
-                        "tag": tagController.text,
-                        "name": nameController.text,
-                        "address": addressController.text,
-                        "phone": phoneController.text,
-                      });
-                    });
+                    await _saveAddress(
+                      tag: tagController.text.trim(),
+                      name: nameController.text.trim(),
+                      address: addressController.text.trim(),
+                      phone: phoneController.text.trim(),
+                    );
 
                     Navigator.pop(context);
                   },
@@ -95,7 +127,10 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         backgroundColor: AppColors.primaryTeal,
-        title: const Text("Saved Addresses", style: TextStyle(color: Colors.white)),
+        title: const Text(
+          "Saved Addresses",
+          style: TextStyle(color: Colors.white),
+        ),
         centerTitle: true,
       ),
       floatingActionButton: FloatingActionButton(
@@ -103,20 +138,40 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
         onPressed: _showAddAddressPopup,
         child: const Icon(Icons.add, color: Colors.white),
       ),
-      body: _addresses.isEmpty
-          ? const Center(child: Text("No saved addresses"))
-          : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _addresses.length,
-              itemBuilder: (context, index) {
-                final a = _addresses[index];
-                return _addressCard(a, index);
-              },
-            ),
+
+      /// 📡 Firestore Stream
+      body: StreamBuilder<QuerySnapshot>(
+        stream: _firestore
+            .collection('users')
+            .doc(_user!.uid)
+            .collection('addresses')
+            .orderBy('createdAt', descending: true)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text("No saved addresses"));
+          }
+
+          return ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              final doc = snapshot.data!.docs[index];
+              final data = doc.data() as Map<String, dynamic>;
+              return _addressCard(data, doc.id);
+            },
+          );
+        },
+      ),
     );
   }
 
-  Widget _addressCard(Map<String, String> a, int index) {
+  /// 📦 Address Card
+  Widget _addressCard(Map<String, dynamic> a, String docId) {
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -127,13 +182,14 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.primaryTeal.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Text(
-                  a["tag"]!,
+                  a['tag'],
                   style: TextStyle(
                     color: AppColors.primaryTeal,
                     fontSize: 12,
@@ -143,23 +199,25 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
               ),
               IconButton(
                 icon: const Icon(Icons.delete_outline, color: Colors.red),
-                onPressed: () {
-                  setState(() => _addresses.removeAt(index));
-                },
-              )
+                onPressed: () => _deleteAddress(docId),
+              ),
             ],
           ),
           const SizedBox(height: 10),
-          Text(a["name"]!, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(
+            a['name'],
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
           const SizedBox(height: 6),
-          Text(a["address"]!),
+          Text(a['address']),
           const SizedBox(height: 6),
-          Text(a["phone"]!),
+          Text(a['phone']),
         ]),
       ),
     );
   }
 
+  /// ✏️ Input Field
   Widget _input(
     TextEditingController controller,
     String label, {
@@ -172,7 +230,9 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
         maxLines: maxLines,
         decoration: InputDecoration(
           labelText: label,
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
