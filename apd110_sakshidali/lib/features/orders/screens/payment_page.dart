@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 
-class PaymentsPage extends StatelessWidget {
+class PaymentsPage extends StatefulWidget {
   const PaymentsPage({super.key});
+
+  @override
+  State<PaymentsPage> createState() => _PaymentsPageState();
+}
+
+class _PaymentsPageState extends State<PaymentsPage> {
+  String selectedFilter = "All";
 
   @override
   Widget build(BuildContext context) {
@@ -21,10 +28,16 @@ class PaymentsPage extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            _balanceCard(),
-            const SizedBox(height: 20),
-            _sectionTitle("Recent Transactions"),
+            _topStats(),
+            const SizedBox(height: 22),
+            _filters(),
+            const SizedBox(height: 16),
+            const Text(
+              "Transaction History",
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 12),
             Expanded(
               child: ListView(
@@ -33,19 +46,19 @@ class PaymentsPage extends StatelessWidget {
                     title: "Order #CXR101",
                     date: "10 Jan 2026",
                     amount: "- ₹450",
-                    success: true,
+                    status: PaymentStatus.success,
                   ),
                   PaymentTile(
                     title: "Order #CXR102",
                     date: "08 Jan 2026",
                     amount: "- ₹820",
-                    success: true,
+                    status: PaymentStatus.success,
                   ),
                   PaymentTile(
                     title: "Refund #CXR099",
                     date: "05 Jan 2026",
                     amount: "+ ₹300",
-                    success: false,
+                    status: PaymentStatus.refund,
                   ),
                 ],
               ),
@@ -56,70 +69,106 @@ class PaymentsPage extends StatelessWidget {
     );
   }
 
-  Widget _balanceCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.primaryTeal,
-            AppColors.primaryTeal.withOpacity(0.8),
+  Widget _topStats() {
+    return Row(
+      children: [
+        _statCard("Available Balance", "₹ 3,500", Icons.account_balance_wallet),
+        const SizedBox(width: 12),
+        _statCard("Total Spent", "₹ 1,270", Icons.trending_down),
+      ],
+    );
+  }
+
+  Widget _statCard(String title, String value, IconData icon) {
+    return Expanded(
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: const [
-          Text(
-            "Total Spent",
-            style: TextStyle(color: Colors.white70),
-          ),
-          SizedBox(height: 8),
-          Text(
-            "₹ 1,270",
-            style: TextStyle(
-              fontSize: 26,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: AppColors.primaryTeal),
+            const SizedBox(height: 10),
+            Text(
+              title,
+              style: const TextStyle(fontSize: 12, color: Colors.grey),
             ),
-          ),
-        ],
+            const SizedBox(height: 4),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  Widget _sectionTitle(String text) {
-    return Align(
-      alignment: Alignment.centerLeft,
-      child: Text(
-        text,
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
-      ),
+  Widget _filters() {
+    return Row(
+      children: ["All", "Paid", "Refund"].map((filter) {
+        final isSelected = selectedFilter == filter;
+        return GestureDetector(
+          onTap: () {
+            setState(() => selectedFilter = filter);
+          },
+          child: Container(
+            margin: const EdgeInsets.only(right: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? AppColors.primaryTeal
+                  : Colors.grey.shade200,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text(
+              filter,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.black,
+              ),
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 }
+
+enum PaymentStatus { success, refund }
 
 class PaymentTile extends StatelessWidget {
   final String title;
   final String date;
   final String amount;
-  final bool success;
+  final PaymentStatus status;
 
   const PaymentTile({
     super.key,
     required this.title,
     required this.date,
     required this.amount,
-    required this.success,
+    required this.status,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isRefund = status == PaymentStatus.refund;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(14),
@@ -137,12 +186,12 @@ class PaymentTile extends StatelessWidget {
       child: Row(
         children: [
           CircleAvatar(
-            backgroundColor: success
-                ? Colors.green.withOpacity(0.1)
-                : Colors.orange.withOpacity(0.1),
+            backgroundColor: isRefund
+                ? Colors.orange.withOpacity(0.1)
+                : Colors.green.withOpacity(0.1),
             child: Icon(
-              success ? Icons.check_circle : Icons.refresh,
-              color: success ? Colors.green : Colors.orange,
+              isRefund ? Icons.refresh : Icons.check_circle,
+              color: isRefund ? Colors.orange : Colors.green,
             ),
           ),
           const SizedBox(width: 12),
@@ -150,29 +199,49 @@ class PaymentTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w600),
-                ),
+                Text(title,
+                    style: const TextStyle(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 4),
                 Text(
                   date,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey,
-                  ),
+                  style:
+                      const TextStyle(fontSize: 12, color: Colors.grey),
                 ),
               ],
             ),
           ),
-          Text(
-            amount,
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: amount.startsWith("+")
-                  ? Colors.green
-                  : Colors.black,
-            ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                amount,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: amount.startsWith("+")
+                      ? Colors.green
+                      : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                decoration: BoxDecoration(
+                  color: isRefund
+                      ? Colors.orange.withOpacity(0.15)
+                      : Colors.green.withOpacity(0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  isRefund ? "Refunded" : "Paid",
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                    color: isRefund ? Colors.orange : Colors.green,
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

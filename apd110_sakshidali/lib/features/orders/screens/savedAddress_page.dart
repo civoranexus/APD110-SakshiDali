@@ -111,7 +111,9 @@ class _SavedAddressPageState extends State<SavedAddressPage> {
 
                     Navigator.pop(context);
                   },
-                  child: const Text("Save Address"),
+                  child: const Text("Save Address",style:TextStyle(
+                    color: Colors.white
+                  )),
                 ),
               )
             ],
