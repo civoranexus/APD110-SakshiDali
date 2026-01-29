@@ -30,7 +30,7 @@ class _SignupPageState extends State<SignupPage> {
     await _authController.signup(
       email: emailController.text,
       password: passwordController.text,
-      context: context,
+      context: context, name: '',
     );
 
     setState(() => isLoading = false);

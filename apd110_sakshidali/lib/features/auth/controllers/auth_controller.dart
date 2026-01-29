@@ -7,8 +7,9 @@ class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
-  /// ================= SIGNUP =================
+  // ================= SIGN UP =================
   Future<void> signup({
+    required String name,
     required String email,
     required String password,
     required BuildContext context,
@@ -20,22 +21,35 @@ class AuthController {
         password: password.trim(),
       );
 
-      User? user = userCredential.user;
+      User user = userCredential.user!;
 
-      if (user != null) {
-        await _firestore.collection('users').doc(user.uid).set({
-          'uid': user.uid,
-          'email': user.email,
-          'createdAt': FieldValue.serverTimestamp(),
-          'isEmailVerified': user.emailVerified,
-        });
+      /// 🔹 Save name in FirebaseAuth
+      await user.updateDisplayName(name);
+      await user.reload();
 
-        await user.sendEmailVerification();
-      }
+      /// 🔹 Save user in Firestore
+      await _firestore.collection('users').doc(user.uid).set({
+        'uid': user.uid,
+        'name': name,
+        'email': user.email,
+        'createdAt': FieldValue.serverTimestamp(),
+        'isEmailVerified': user.emailVerified,
+      });
+
+      /// 🔹 Send verification email
+      await user.sendEmailVerification();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Signup successful. Verify your email.")),
+        const SnackBar(
+          content: Text(
+            "Signup successful. Please verify your email before login.",
+          ),
+        ),
       );
+
+      /// 🔹 Go back to Login page
+      Navigator.pop(context);
+
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Signup failed")),
@@ -43,19 +57,37 @@ class AuthController {
     }
   }
 
-  /// ================= LOGIN =================
+  // ================= LOGIN =================
   Future<void> login({
     required String email,
     required String password,
     required BuildContext context,
   }) async {
     try {
-      await _auth.signInWithEmailAndPassword(
+      UserCredential userCredential =
+          await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
 
-      // ✅ REMOVE LOGIN FROM STACK
+      User user = userCredential.user!;
+
+      /// 🔴 If email not verified → resend + block login
+      if (!user.emailVerified) {
+        await user.sendEmailVerification();
+        await _auth.signOut();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              "Email not verified. Verification link sent again.",
+            ),
+          ),
+        );
+        return;
+      }
+
+      /// ✅ Login success → Go to HomePage
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
@@ -65,6 +97,7 @@ class AuthController {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Login successful")),
       );
+
     } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(e.message ?? "Login failed")),
@@ -72,7 +105,7 @@ class AuthController {
     }
   }
 
-  /// ================= LOGOUT =================
+  // ================= LOGOUT =================
   Future<void> logout(BuildContext context) async {
     await _auth.signOut();
   }

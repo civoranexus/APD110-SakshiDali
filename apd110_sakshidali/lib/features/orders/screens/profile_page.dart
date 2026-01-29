@@ -2,17 +2,19 @@ import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 import 'package:apd110_sakshidali/features/auth/screens/helpAndSupport_page.dart';
 import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
 import 'package:apd110_sakshidali/features/orders/screens/my_orderPage.dart';
-import 'package:apd110_sakshidali/features/orders/screens/payment_method.dart';
 import 'package:apd110_sakshidali/features/orders/screens/payment_page.dart';
 import 'package:apd110_sakshidali/features/orders/screens/savedAddress_page.dart';
 import 'package:apd110_sakshidali/features/orders/screens/settings.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final User? user = FirebaseAuth.instance.currentUser;
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -24,10 +26,12 @@ class ProfilePage extends StatelessWidget {
         ),
         centerTitle: true,
       ),
+
       body: SingleChildScrollView(
         child: Column(
           children: [
-            /// Profile Header
+
+            /// 🔹 PROFILE HEADER
             Container(
               width: double.infinity,
               padding: const EdgeInsets.symmetric(vertical: 24),
@@ -39,8 +43,9 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
               child: Column(
-                children: const [
-                  CircleAvatar(
+                children: [
+
+                  const CircleAvatar(
                     radius: 45,
                     backgroundColor: Colors.white,
                     child: Icon(
@@ -49,19 +54,25 @@ class ProfilePage extends StatelessWidget {
                       color: AppColors.primaryTeal,
                     ),
                   ),
-                  SizedBox(height: 12),
+
+                  const SizedBox(height: 12),
+
+                  /// 👤 USER NAME
                   Text(
-                    "Sakshi Dali",
-                    style: TextStyle(
+                    user?.displayName ?? "User Name",
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
-                  SizedBox(height: 4),
+
+                  const SizedBox(height: 4),
+
+                  /// 📧 USER EMAIL
                   Text(
-                    "sakshi@email.com",
-                    style: TextStyle(
+                    user?.email ?? "user@email.com",
+                    style: const TextStyle(
                       color: Colors.white70,
                       fontSize: 14,
                     ),
@@ -72,16 +83,15 @@ class ProfilePage extends StatelessWidget {
 
             const SizedBox(height: 24),
 
-            /// Profile Options
+            /// 🔹 PROFILE OPTIONS
             _profileTile(
               context,
               icon: Icons.location_on_outlined,
               title: "Saved Addresses",
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>  SavedAddressPage(),
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SavedAddressPage()),
                 );
               },
             ),
@@ -91,10 +101,9 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.receipt_long_outlined,
               title: "My Orders",
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) => const MyOrdersPage(),
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const MyOrdersPage()),
                 );
               },
             ),
@@ -104,10 +113,9 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.account_balance_wallet_outlined,
               title: "Payment History",
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>  PaymentsPage(),
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const PaymentsPage()),
                 );
               },
             ),
@@ -117,10 +125,9 @@ class ProfilePage extends StatelessWidget {
               icon: Icons.support_agent_outlined,
               title: "Help & Support",
               onTap: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(
-                    builder: (_) =>  HelpSupportPage(),
-                  ),
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const HelpSupportPage()),
                 );
               },
             ),
@@ -129,16 +136,17 @@ class ProfilePage extends StatelessWidget {
               context,
               icon: Icons.settings_outlined,
               title: "Settings",
-             onTap: () {
-  Navigator.of(context).push(
-    MaterialPageRoute(builder: (_) =>  SettingsPage()),
-  );
-},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsPage()),
+                );
+              },
             ),
 
             const SizedBox(height: 16),
 
-            /// Logout Button
+            /// 🚪 LOGOUT BUTTON
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: ElevatedButton(
@@ -149,7 +157,15 @@ class ProfilePage extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                onPressed: () {},
+                onPressed: () async {
+                  await FirebaseAuth.instance.signOut();
+
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomePage()),
+                    (route) => false,
+                  );
+                },
                 child: const Text(
                   "Logout",
                   style: TextStyle(fontSize: 16, color: Colors.white),
@@ -164,7 +180,7 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  /// ✅ FIXED PROFILE TILE
+  /// 🔹 REUSABLE PROFILE TILE
   Widget _profileTile(
     BuildContext context, {
     required IconData icon,
@@ -187,10 +203,7 @@ class ProfilePage extends StatelessWidget {
             ),
           ),
           trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-          onTap:onTap
-  // Navigator.of(context).push(
-  //   MaterialPageRoute(builder: (_) =>  HomePage()),
-  // );
+          onTap: onTap,
         ),
       ),
     );
