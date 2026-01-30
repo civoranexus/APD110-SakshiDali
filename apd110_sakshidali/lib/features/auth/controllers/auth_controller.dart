@@ -1,6 +1,6 @@
 import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class AuthController {
@@ -23,11 +23,11 @@ class AuthController {
 
       User user = userCredential.user!;
 
-      /// 🔹 Save name in FirebaseAuth
+      // 🔹 Save name in FirebaseAuth
       await user.updateDisplayName(name);
       await user.reload();
 
-      /// 🔹 Save user in Firestore
+      // 🔹 Save user in Firestore
       await _firestore.collection('users').doc(user.uid).set({
         'uid': user.uid,
         'name': name,
@@ -36,7 +36,7 @@ class AuthController {
         'isEmailVerified': user.emailVerified,
       });
 
-      /// 🔹 Send verification email
+      // 🔹 Send verification email
       await user.sendEmailVerification();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -47,7 +47,7 @@ class AuthController {
         ),
       );
 
-      /// 🔹 Go back to Login page
+      // 🔹 Go back to Login page
       Navigator.pop(context);
 
     } on FirebaseAuthException catch (e) {
@@ -72,30 +72,30 @@ class AuthController {
 
       User user = userCredential.user!;
 
-      /// 🔴 If email not verified → resend + block login
-      if (!user.emailVerified) {
-        await user.sendEmailVerification();
-        await _auth.signOut();
+      // 🔥 VERY IMPORTANT
+      await user.reload();
+      user = _auth.currentUser!;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              "Email not verified. Verification link sent again.",
-            ),
-          ),
-        );
-        return;
-      }
+      // // ❌ Block login if email not verified
+      // if (!user.emailVerified) {
+      //   await user.sendEmailVerification();
+      //   await _auth.signOut();
 
-      /// ✅ Login success → Go to HomePage
+      //   ScaffoldMessenger.of(context).showSnackBar(
+      //     const SnackBar(
+      //       content: Text(
+      //         "Email not verified. Verification link sent again.",
+      //       ),
+      //     ),
+      //   );
+      //   return;
+      // }
+
+      // ✅ Login success → HomePage
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const HomePage()),
         (route) => false,
-      );
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Login successful")),
       );
 
     } on FirebaseAuthException catch (e) {
@@ -108,5 +108,7 @@ class AuthController {
   // ================= LOGOUT =================
   Future<void> logout(BuildContext context) async {
     await _auth.signOut();
+
+    Navigator.popUntil(context, (route) => route.isFirst);
   }
 }
