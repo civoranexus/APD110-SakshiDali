@@ -1,6 +1,7 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 import 'package:apd110_sakshidali/features/auth/screens/helpAndSupport_page.dart';
 import 'package:apd110_sakshidali/features/auth/screens/home_screen.dart';
+import 'package:apd110_sakshidali/features/auth/screens/login_screen.dart';
 import 'package:apd110_sakshidali/features/orders/screens/my_orderPage.dart';
 import 'package:apd110_sakshidali/features/orders/screens/payment_page.dart';
 import 'package:apd110_sakshidali/features/orders/screens/savedAddress_page.dart';
@@ -212,7 +213,7 @@ class ProfilePage extends StatelessWidget {
 
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (_) => const HomePage()),
+                  MaterialPageRoute(builder: (_) => const LoginPage()),
                   (route) => false,
                 );
               },

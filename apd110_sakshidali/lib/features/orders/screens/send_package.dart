@@ -14,6 +14,7 @@ class SendPackagePage extends StatefulWidget {
 class _SendPackagePageState extends State<SendPackagePage> {
   final _formKey = GlobalKey<FormState>();
 
+  // Controllers
   final _senderName = TextEditingController();
   final _senderPhone = TextEditingController();
   final _receiverName = TextEditingController();
@@ -25,49 +26,96 @@ class _SendPackagePageState extends State<SendPackagePage> {
 
   bool isLoading = false;
 
-  /// 🚀 Save package to Firestore
+  // Schedule delivery
+  bool scheduleLater = false;
+  DateTime? scheduledDate;
+  TimeOfDay? scheduledTime;
+
+  // ---------------- Date Picker ----------------
+  Future<void> _pickDate() async {
+    final date = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 30)),
+    );
+
+    if (date != null) {
+      setState(() => scheduledDate = date);
+    }
+  }
+
+  // ---------------- Time Picker ----------------
+  Future<void> _pickTime() async {
+    final time = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+
+    if (time != null) {
+      setState(() => scheduledTime = time);
+    }
+  }
+
+  // ---------------- Save to Firestore ----------------
   Future<void> _createPackage() async {
     setState(() => isLoading = true);
 
-    final user = FirebaseAuth.instance.currentUser;
-    final docRef =
-        FirebaseFirestore.instance.collection('send_packages').doc();
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final docRef =
+          FirebaseFirestore.instance.collection('send_packages').doc();
 
-    await docRef.set({
-      "packageId": docRef.id,
+      await docRef.set({
+        "packageId": docRef.id,
+        "senderId": user!.uid,
 
-      "senderId": user!.uid,
-      "senderName": _senderName.text.trim(),
-      "senderPhone": _senderPhone.text.trim(),
+        "sender": {
+          "name": _senderName.text.trim(),
+          "phone": _senderPhone.text.trim(),
+        },
 
-      "receiverName": _receiverName.text.trim(),
-      "receiverPhone": _receiverPhone.text.trim(),
+        "receiver": {
+          "name": _receiverName.text.trim(),
+          "phone": _receiverPhone.text.trim(),
+        },
 
-      "packageDetails": {
-        "weight": _packageWeight.text.trim(),
-        "type": _packageType.text.trim(),
-      },
+        "package": {
+          "weight": _packageWeight.text.trim(),
+          "type": _packageType.text.trim(),
+        },
 
-      "pickupAddress": {
-        "location": _pickupLocation.text.trim(),
-      },
+        "pickup": {
+          "location": _pickupLocation.text.trim(),
+        },
 
-      "dropAddress": {
-        "location": _dropLocation.text.trim(),
-      },
+        "drop": {
+          "location": _dropLocation.text.trim(),
+        },
 
-      "status": "pending",
-      "createdAt": FieldValue.serverTimestamp(),
-    });
+        "schedule": {
+          "isScheduled": scheduleLater,
+          "date": scheduleLater ? scheduledDate : null,
+          "time": scheduleLater ? scheduledTime?.format(context) : null,
+        },
+
+        "status": "pending",
+        "createdAt": FieldValue.serverTimestamp(),
+      });
+
+      // Navigate to payment page
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => PaymentPage(packageId: docRef.id),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Error: $e")),
+      );
+    }
 
     setState(() => isLoading = false);
-
-    /// ➡️ Navigate to payment page
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => PaymentPage(packageId: docRef.id),
-      ),
-    );
   }
 
   @override
@@ -131,6 +179,49 @@ class _SendPackagePageState extends State<SendPackagePage> {
                 ],
               ),
 
+              // ---------------- Schedule ----------------
+              _infoCard(
+                title: "Delivery Schedule",
+                children: [
+                  SwitchListTile(
+                    value: scheduleLater,
+                    title: const Text("Schedule for Later"),
+                    onChanged: (value) {
+                      setState(() => scheduleLater = value);
+                    },
+                  ),
+
+                  if (scheduleLater) ...[
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _pickDate,
+                            child: Text(
+                              scheduledDate == null
+                                  ? "Select Date"
+                                  : "${scheduledDate!.day}/${scheduledDate!.month}/${scheduledDate!.year}",
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _pickTime,
+                            child: Text(
+                              scheduledTime == null
+                                  ? "Select Time"
+                                  : scheduledTime!.format(context),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+
               const SizedBox(height: 30),
 
               SizedBox(
@@ -141,6 +232,16 @@ class _SendPackagePageState extends State<SendPackagePage> {
                       ? null
                       : () {
                           if (_formKey.currentState!.validate()) {
+                            if (scheduleLater &&
+                                (scheduledDate == null ||
+                                    scheduledTime == null)) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Please select date & time"),
+                                ),
+                              );
+                              return;
+                            }
                             _createPackage();
                           }
                         },
@@ -170,7 +271,7 @@ class _SendPackagePageState extends State<SendPackagePage> {
     );
   }
 
-  /// 🧾 Card Section
+  // ---------------- UI Helpers ----------------
   Widget _infoCard({
     required String title,
     required List<Widget> children,
@@ -202,7 +303,6 @@ class _SendPackagePageState extends State<SendPackagePage> {
     );
   }
 
-  /// ✏️ Input Field with Validation
   Widget _inputField(
     String hint,
     IconData icon,
