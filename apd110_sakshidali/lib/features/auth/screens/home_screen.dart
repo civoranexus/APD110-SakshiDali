@@ -1,6 +1,6 @@
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 import 'package:apd110_sakshidali/features/auth/screens/homePage_Content.dart';
-import 'package:apd110_sakshidali/features/orders/screens/alertPage.dart';
+import 'package:apd110_sakshidali/features/orders/screens/notification.dart';
 import 'package:apd110_sakshidali/features/orders/screens/my_orderPage.dart';
 import 'package:apd110_sakshidali/features/orders/screens/profile_page.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +18,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = const [
     HomePageContent(),
     MyOrdersPage(),
-    AlertsPage(),
+    NotificationPage(),
     ProfilePage(),
   ];
 
