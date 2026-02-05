@@ -3,6 +3,7 @@ import 'package:apd110_sakshidali/features/auth/screens/homePage_Content.dart';
 import 'package:apd110_sakshidali/features/orders/screens/notification.dart';
 import 'package:apd110_sakshidali/features/orders/screens/my_orderPage.dart';
 import 'package:apd110_sakshidali/features/orders/screens/profile_page.dart';
+import 'package:apd110_sakshidali/features/orders/screens/receiversNotification.dart';
 import 'package:flutter/material.dart';
 
 class HomePage extends StatefulWidget {
@@ -18,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   final List<Widget> _pages = const [
     HomePageContent(),
     MyOrdersPage(),
-    NotificationPage(),
+    ReceiverNotificationsPage(),
     ProfilePage(),
   ];
 

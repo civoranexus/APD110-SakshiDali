@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:apd110_sakshidali/core/constants/app_colors.dart';
 import 'package:apd110_sakshidali/features/orders/screens/personal_Info.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final user = FirebaseAuth.instance.currentUser;
+    final email = user?.email ?? "No Email";
+
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
@@ -39,22 +43,25 @@ class SettingsPage extends StatelessWidget {
                 CircleAvatar(
                   radius: 28,
                   backgroundColor: AppColors.primaryTeal,
-                  child: const Icon(Icons.person,
-                      color: Colors.white, size: 30),
+                  child: const Icon(
+                    Icons.person,
+                    color: Colors.white,
+                    size: 30,
+                  ),
                 ),
                 const SizedBox(width: 16),
-                const Column(
+                Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Sakshi Dali',
-                      style: TextStyle(
-                        fontSize: 16,
+                      email, // ✅ LOGIN EMAIL HERE
+                      style: const TextStyle(
+                        fontSize: 15,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    SizedBox(height: 4),
-                    Text(
+                    const SizedBox(height: 4),
+                    const Text(
                       'View Profile',
                       style: TextStyle(
                         fontSize: 13,
@@ -135,7 +142,10 @@ class SettingsPage extends StatelessWidget {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            onTap: () {},
+            onTap: () async {
+              await FirebaseAuth.instance.signOut();
+              Navigator.pop(context);
+            },
           ),
         ],
       ),
@@ -156,8 +166,8 @@ class SettingsPage extends StatelessWidget {
       leading: Icon(icon, color: AppColors.primaryTeal),
       title: Text(title),
       subtitle: Text(subtitle),
-      trailing: trailing ??
-          const Icon(Icons.arrow_forward_ios, size: 16),
+      trailing:
+          trailing ?? const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
     );
   }
