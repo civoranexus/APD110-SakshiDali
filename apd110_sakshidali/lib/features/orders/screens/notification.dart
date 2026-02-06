@@ -8,7 +8,7 @@ class NotificationPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final userId = FirebaseAuth.instance.currentUser!.uid;
+    final userEmail = FirebaseAuth.instance.currentUser!.email;
 
     return Scaffold(
       appBar: AppBar(
@@ -18,8 +18,8 @@ class NotificationPage extends StatelessWidget {
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('notifications')
-            .where('receiverId', isEqualTo: userId)
-            .orderBy('timestamp', descending: true)
+            .where('receiverEmail', isEqualTo: userEmail)
+            .orderBy('createdAt', descending: true)
             .snapshots(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -27,9 +27,7 @@ class NotificationPage extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(
-              child: Text("No notifications yet 📭"),
-            );
+            return const Center(child: Text("No notifications 📭"));
           }
 
           return ListView.builder(
@@ -40,30 +38,28 @@ class NotificationPage extends StatelessWidget {
               final data = doc.data() as Map<String, dynamic>;
 
               return Card(
-                elevation: data['isRead'] ? 1 : 4,
                 color: data['isRead']
                     ? Colors.white
                     : Colors.blue.shade50,
-                margin: const EdgeInsets.only(bottom: 10),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue,
-                    child: const Icon(Icons.local_shipping, color: Colors.white),
-                  ),
+                  leading: const Icon(Icons.notifications),
                   title: Text(
-                    data['message'],
+                    data['title'],
                     style: TextStyle(
                       fontWeight:
                           data['isRead'] ? FontWeight.normal : FontWeight.bold,
                     ),
                   ),
-                  subtitle: Text("Package ID: ${data['packageId']}"),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 14),
+                  subtitle: Text(
+                    "${data['message']}\nPackage ID: ${data['packageId']}",
+                  ),
+                  trailing:
+                      const Icon(Icons.arrow_forward_ios, size: 14),
                   onTap: () async {
                     await FirebaseFirestore.instance
                         .collection('notifications')
                         .doc(doc.id)
-                        .update({'isRead': true});
+                        .update({"isRead": true});
 
                     Navigator.push(
                       context,

@@ -14,16 +14,13 @@ class SendPackagePage extends StatefulWidget {
 class _SendPackagePageState extends State<SendPackagePage> {
   final _formKey = GlobalKey<FormState>();
 
-  // Sender
   final _senderName = TextEditingController();
   final _senderPhone = TextEditingController();
 
-  // Receiver
   final _receiverName = TextEditingController();
   final _receiverPhone = TextEditingController();
   final _receiverEmail = TextEditingController();
 
-  // Package
   final _packageWeight = TextEditingController();
   final _packageType = TextEditingController();
   final _pickupLocation = TextEditingController();
@@ -45,25 +42,17 @@ class _SendPackagePageState extends State<SendPackagePage> {
   }
 
   Future<void> _pickTime() async {
-    final time = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
+    final time =
+        await showTimePicker(context: context, initialTime: TimeOfDay.now());
     if (time != null) setState(() => scheduledTime = time);
   }
 
-  // ---------------- SAVE PACKAGE + NOTIFICATION ----------------
   Future<void> _createPackage() async {
     setState(() => isLoading = true);
 
     try {
       final user = FirebaseAuth.instance.currentUser!;
-      final userDoc = await FirebaseFirestore.instance
-          .collection('users')
-          .doc(user.uid)
-          .get();
-
-      final senderEmail = userDoc['email'];
+      final senderEmail = user.email;
 
       final packageRef =
           FirebaseFirestore.instance.collection('send_packages').doc();
@@ -73,46 +62,41 @@ class _SendPackagePageState extends State<SendPackagePage> {
         "senderId": user.uid,
 
         "sender": {
-          "name": _senderName.text.trim(),
-          "phone": _senderPhone.text.trim(),
+          "name": _senderName.text,
+          "phone": _senderPhone.text,
           "email": senderEmail,
         },
 
         "receiver": {
-          "name": _receiverName.text.trim(),
-          "phone": _receiverPhone.text.trim(),
-          "email": _receiverEmail.text.trim(),
+          "name": _receiverName.text,
+          "phone": _receiverPhone.text,
+          "email": _receiverEmail.text,
         },
 
         "package": {
-          "weight": _packageWeight.text.trim(),
-          "type": _packageType.text.trim(),
+          "weight": _packageWeight.text,
+          "type": _packageType.text,
         },
 
-        "pickup": {
-          "location": _pickupLocation.text.trim(),
-        },
-
-        "drop": {
-          "location": _dropLocation.text.trim(),
-        },
+        "pickup": {"location": _pickupLocation.text},
+        "drop": {"location": _dropLocation.text},
 
         "schedule": {
           "isScheduled": scheduleLater,
-          "date": scheduleLater ? scheduledDate : null,
-          "time": scheduleLater ? scheduledTime?.format(context) : null,
+          "date": scheduledDate,
+          "time": scheduledTime?.format(context),
         },
 
         "status": "pending",
         "createdAt": FieldValue.serverTimestamp(),
       });
 
-      // 🔔 Notification for receiver
+      /// 🔔 NOTIFICATION STORED HERE
       await FirebaseFirestore.instance.collection('notifications').add({
         "receiverEmail": _receiverEmail.text.trim(),
         "title": "📦 New Package Incoming",
         "message":
-            "Sender: ${_senderName.text}\nEmail: $senderEmail\nPhone: ${_senderPhone.text}",
+            "Sender: ${_senderName.text}\nPhone: ${_senderPhone.text}",
         "packageId": packageRef.id,
         "isRead": false,
         "createdAt": FieldValue.serverTimestamp(),
@@ -148,36 +132,29 @@ class _SendPackagePageState extends State<SendPackagePage> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _infoCard("Sender Details", [
-                _inputField("Sender Name", Icons.person, _senderName),
-                _inputField("Sender Phone", Icons.phone, _senderPhone),
+              _card("Sender Details", [
+                _field("Sender Name", _senderName),
+                _field("Sender Phone", _senderPhone),
               ]),
-
-              _infoCard("Receiver Details", [
-                _inputField("Receiver Name", Icons.person_outline, _receiverName),
-                _inputField("Receiver Phone", Icons.phone_android, _receiverPhone),
-                _inputField("Receiver Email", Icons.email, _receiverEmail),
+              _card("Receiver Details", [
+                _field("Receiver Name", _receiverName),
+                _field("Receiver Phone", _receiverPhone),
+                _field("Receiver Email", _receiverEmail),
               ]),
-
-              _infoCard("Package Details", [
-                _inputField("Package Weight (kg)", Icons.scale, _packageWeight),
-                _inputField(
-                    "Package Type", Icons.inventory_2, _packageType),
+              _card("Package Details", [
+                _field("Weight (kg)", _packageWeight),
+                _field("Package Type", _packageType),
               ]),
-
-              _infoCard("Pickup Address", [
-                _inputField(
-                    "Pickup Location", Icons.location_on, _pickupLocation),
+              _card("Pickup Address", [
+                _field("Pickup Location", _pickupLocation),
               ]),
-
-              _infoCard("Drop Address", [
-                _inputField("Drop Location", Icons.flag, _dropLocation),
+              _card("Drop Address", [
+                _field("Drop Location", _dropLocation),
               ]),
-
-              _infoCard("Delivery Schedule", [
+              _card("Schedule", [
                 SwitchListTile(
                   value: scheduleLater,
-                  title: const Text("Schedule for Later"),
+                  title: const Text("Schedule Later"),
                   onChanged: (v) => setState(() => scheduleLater = v),
                 ),
                 if (scheduleLater)
@@ -193,7 +170,7 @@ class _SendPackagePageState extends State<SendPackagePage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 10),
                       Expanded(
                         child: OutlinedButton(
                           onPressed: _pickTime,
@@ -205,14 +182,12 @@ class _SendPackagePageState extends State<SendPackagePage> {
                         ),
                       ),
                     ],
-                  ),
+                  )
               ]),
-
-              const SizedBox(height: 30),
-
+              const SizedBox(height: 20),
               SizedBox(
+                height: 55,
                 width: double.infinity,
-                height: 54,
                 child: ElevatedButton(
                   onPressed: isLoading
                       ? null
@@ -229,12 +204,8 @@ class _SendPackagePageState extends State<SendPackagePage> {
                   ),
                   child: isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text(
-                          "Proceed to Payment",
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold),
-                        ),
+                      : const Text("Proceed to Payment",
+                          style: TextStyle(color: Colors.white)),
                 ),
               ),
             ],
@@ -244,35 +215,32 @@ class _SendPackagePageState extends State<SendPackagePage> {
     );
   }
 
-  Widget _infoCard(String title, List<Widget> children) {
+  Widget _card(String title, List<Widget> children) {
     return Card(
-      margin: const EdgeInsets.only(bottom: 18),
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      margin: const EdgeInsets.only(bottom: 16),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           Text(title,
               style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   color: AppColors.primaryTeal)),
-          const SizedBox(height: 14),
-          ...children,
+          const SizedBox(height: 10),
+          ...children
         ]),
       ),
     );
   }
 
-  Widget _inputField(
-      String hint, IconData icon, TextEditingController controller) {
+  Widget _field(String hint, TextEditingController controller) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 14),
+      padding: const EdgeInsets.only(bottom: 12),
       child: TextFormField(
         controller: controller,
-        validator: (v) => v == null || v.isEmpty ? "$hint required" : null,
+        validator: (v) => v!.isEmpty ? "$hint required" : null,
         decoration: InputDecoration(
           hintText: hint,
-          prefixIcon: Icon(icon, color: AppColors.primaryTeal),
           filled: true,
           fillColor: AppColors.background,
           border: OutlineInputBorder(
